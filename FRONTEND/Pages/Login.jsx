@@ -11,7 +11,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { session, setSession } = useContext(SessionContext)
-  console.log("API URL:", import.meta.env.VITE_BACKEND_URL);
 
   const companies = [
     { code: "BCCL_DB_TST", name: "BCCL_TEST" },

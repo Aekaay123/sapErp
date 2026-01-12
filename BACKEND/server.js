@@ -1,7 +1,11 @@
 const express = require("express");
+require("dotenv").config();
 const axios = require("axios");
 const cors = require("cors");
 const https = require("https");
+
+const PORT = process.env.PORT;
+console.log("this is port", process.env.PORT);
 
 const app = express();
 app.use(
@@ -296,4 +300,6 @@ app.post("/api/close-po", async (req, res) => {
   }
 });
 
-https: app.listen(process.env, () => console.log(`Backend running`));
+https: app.listen(process.env.PORT, () =>
+  console.log(`Backend running at ${PORT}`)
+);
