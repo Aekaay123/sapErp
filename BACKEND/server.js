@@ -4,8 +4,6 @@ const cors = require("cors");
 const https = require("https");
 
 const app = express();
-const PORT = 4000;
-
 app.use(
   cors({
     origin: process.env.FRONTEND_URL, // frontend URL
@@ -298,6 +296,4 @@ app.post("/api/close-po", async (req, res) => {
   }
 });
 
-https: app.listen(PORT, () =>
-  console.log(`Backend running at http://localhost:${PORT}`)
-);
+https: app.listen(process.env, () => console.log(`Backend running`));
