@@ -53,7 +53,7 @@ const CancelApInvoice = () => {
             setRows([...temp]);
 
             try {
-                await axios.post("http://localhost:4000/api/cancel-ap-invoices", {
+                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cancel-ap-invoices`, {
                     docEntry: temp[i].docEntry,
                     session,
                 });

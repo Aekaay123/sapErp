@@ -53,7 +53,7 @@ const ArCancel = () => {
             setRows([...temp]);
 
             try {
-                await axios.post("http://localhost:4000/api/cancel-invoice", {
+                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cancel-invoice`, {
                     docEntry: temp[i].docEntry,
                     session,
                 });

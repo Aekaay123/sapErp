@@ -53,7 +53,7 @@ const CloseGRPO = () => {
             setRows([...temp]);
 
             try {
-                await axios.post("http://localhost:4000/api/close-grpo", {
+                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/close-grpo`, {
                     docEntry: temp[i].docEntry,
                     session,
                 });

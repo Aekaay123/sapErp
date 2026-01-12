@@ -54,7 +54,7 @@ const CloseSalesOrder = () => {
             setRows([...temp]);
 
             try {
-                await axios.post("http://localhost:4000/api/close-sales-order", {
+                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/close-sales-order`, {
                     docEntry: temp[i].docEntry,
                     session,
                 });

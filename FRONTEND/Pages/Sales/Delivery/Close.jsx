@@ -54,7 +54,7 @@ const CloseDelivery = () => {
             setRows([...temp]);
 
             try {
-                await axios.post("http://localhost:4000/api/close-delivery-note", {
+                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/close-delivery-note`, {
                     docEntry: temp[i].docEntry,
                     session,
                 });

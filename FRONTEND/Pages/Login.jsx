@@ -11,6 +11,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { session, setSession } = useContext(SessionContext)
+  console.log("API URL:", import.meta.env.VITE_BACKEND_URL);
 
   const companies = [
     { code: "BCCL_DB_TST", name: "BCCL_TEST" },
@@ -26,7 +27,7 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const response = await axios.post("http://localhost:4000/api/login", {
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/login`, {
         employeeCode,
         password,
         company
