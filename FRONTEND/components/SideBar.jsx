@@ -13,16 +13,36 @@ const SideBar = () => {
     const [grpOpen, setGrpOpen] = useState(false)
     const [ApInvoiceOpen, setApInvoiceOpen] = useState(false)
     const [outgoingPaymentOpen, setOutgoingPaymentOpen] = useState(false)
+    const [reconciliationOpen, setReconciliationOpen] = useState(false)
+    const [purchaseRequestOpen, setPurchaseRequestOpen] = useState(false)
+    const [itemsOpen, setItemsOpen] = useState(false)
+    const [coaOpen, setCoaOpen] = useState(false)
 
-
-    const location = useLocation(); // get current path
+    const location = useLocation();
 
     const isIncomingPaymentActive = location.pathname.startsWith("/main/incoming-payment");
+
     const linkClass = ({ isActive }) =>
         `block px-3 py-2 rounded transition ${isActive ? "bg-gray-300 font-semibold" : "hover:bg-gray-200"}`;
 
     return (
-        <aside className="w-64 bg-gray-100 p-4 border-r fixed h-full overflow-auto">
+        <aside className="w-64 bg-gray-100 p-4 border-r mt-24 fixed flex flex-col gap-y-4 h-full overflow-auto">
+            {/* ITEMS DROPDOWN */}
+            <div>
+                <button
+                    onClick={() => setItemsOpen(!itemsOpen)}
+                    className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}
+                >
+                    Items {itemsOpen ? "-" : "+"}
+                </button>
+                {itemsOpen && (
+                    <ul className="ml-2 space-y-1">
+                        <li><NavLink to="/items/add" className={linkClass}>Add</NavLink></li>
+                        <li><NavLink to="/main/items/update" className={linkClass}>Update</NavLink></li>
+                    </ul>
+                )}
+            </div>
+
 
             {/* BUSINESS PARTNER DROPDOWN */}
             <div>
@@ -42,7 +62,7 @@ const SideBar = () => {
             </div>
 
             {/* SALES DROPDOWN */}
-            <div className="mt-6">
+            <div>
                 <button
                     onClick={() => setSalesOpen(!salesOpen)}
                     className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}
@@ -70,8 +90,7 @@ const SideBar = () => {
                         <li>
                             <button
                                 onClick={() => setIsDeliveryOpen(!deliveryOpen)}
-                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
-                            >
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`} >
                                 Delivery {deliveryOpen ? "-" : "+"}
                             </button>
                             {deliveryOpen && (
@@ -82,7 +101,6 @@ const SideBar = () => {
                                 </ul>
                             )}
                         </li>
-
                         {/* A/R Invoice with nested dropdown */}
                         <li>
                             <button
@@ -99,7 +117,6 @@ const SideBar = () => {
                                 </ul>
                             )}
                         </li>
-
                         {/* Incoming Payment nested */}
                         <li>
                             <button
@@ -119,7 +136,7 @@ const SideBar = () => {
                 )}
             </div>
             {/* PURCHASE DROPDOWN */}
-            <div className="mt-6">
+            <div className>
                 <button
                     onClick={() => setPurchaseOpen(!purchaseOpen)}
                     className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}
@@ -128,12 +145,25 @@ const SideBar = () => {
                 </button>
                 {purchaseOpen && (
                     <ul className="ml-2 space-y-1">
-
+                        <li>
+                            <button
+                                onClick={() => setPurchaseRequestOpen(!purchaseRequestOpen)}
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
+                            >
+                                Purchase Request {purchaseRequestOpen ? "-" : "+"}
+                            </button>
+                            {purchaseRequestOpen && (
+                                <ul className="ml-4 space-y-1">
+                                    <li><NavLink to="/main/purchase-request/remove" className={linkClass}>Remove</NavLink></li>
+                                    <li><NavLink to="/main/purchase-request/cancel" className={linkClass}>Cancel</NavLink></li>
+                                    <li><NavLink to="/main/purchase-requestclose" className={linkClass}>Close</NavLink></li>
+                                </ul>
+                            )}
+                        </li>
                         <li>
                             <button
                                 onClick={() => setPurchaseOrderOpen(!purchaseOrderOpen)}
-                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
-                            >
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`} >
                                 Purchase order{purchaseOrderOpen ? "-" : "+"}
                             </button>
                             {purchaseOrderOpen && (
@@ -147,8 +177,7 @@ const SideBar = () => {
                         <li>
                             <button
                                 onClick={() => setGrpOpen(!grpOpen)}
-                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
-                            >
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}>
                                 Goods Receipt {grpOpen ? "-" : "+"}
                             </button>
                             {grpOpen && (
@@ -162,23 +191,20 @@ const SideBar = () => {
                         <li>
                             <button
                                 onClick={() => setApInvoiceOpen(!ApInvoiceOpen)}
-                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
-                            >
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`} >
                                 A/P Invoice {ApInvoiceOpen ? "-" : "+"}
                             </button>
                             {ApInvoiceOpen && (
                                 <ul className="ml-4 space-y-1">
                                     <li><NavLink to="/main/ap-invoice/add" className={linkClass}>Add</NavLink></li>
                                     <li><NavLink to="/main/ap-invoice/cancel" className={linkClass}>Cancel</NavLink></li>
-
                                 </ul>
                             )}
                         </li>
                         <li>
                             <button
                                 onClick={() => setOutgoingPaymentOpen(!outgoingPaymentOpen)}
-                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition ${isIncomingPaymentActive ? "bg-gray-300 font-semibold" : "hover:bg-gray-200"}`}
-                            >
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition ${isIncomingPaymentActive ? "bg-gray-300 font-semibold" : "hover:bg-gray-200"}`}>
                                 Incoming Payment {outgoingPaymentOpen ? "-" : "+"}
                             </button>
                             {outgoingPaymentOpen && (
@@ -191,6 +217,38 @@ const SideBar = () => {
                     </ul>
                 )}
             </div>
+
+            {/* RECONCILIATION DROPDOWN */}
+            <div>
+                <button
+                    onClick={() => setReconciliationOpen(!reconciliationOpen)}
+                    className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}>
+                    Reconciliation {reconciliationOpen ? "-" : "+"}
+                </button>
+                {reconciliationOpen && (
+                    <ul className="ml-2 space-y-1">
+                        <li><NavLink to="/main/reconciliation/bussiness-partners" className={linkClass}>Bussiness partner</NavLink></li>
+                        <li><NavLink to="/main/reconciliation/gl-accounts" className={linkClass}>Accounts</NavLink> </li>
+                    </ul>
+                )}
+            </div>
+
+            {/* CHART OF ACCOUNTS*/}
+            <div>
+                <button
+                    onClick={() => setCoaOpen(!coaOpen)}
+                    className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}
+                >
+                    Chart of Accounts {coaOpen ? "-" : "+"}
+                </button>
+                {coaOpen && (
+                    <ul className="ml-2 space-y-1">
+                        <li><NavLink to="/main/chart-of-accounts/add-title-acc" className={linkClass}>Add Title Account</NavLink></li>
+                        <li><NavLink to="/main/chart-of-accounts/add-active-acc" className={linkClass}>Add Active Account</NavLink></li>
+                    </ul>
+                )}
+            </div>
+
         </aside>
     );
 };

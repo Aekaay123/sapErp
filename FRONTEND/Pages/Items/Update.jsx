@@ -1,0 +1,219 @@
+import React, { useState, useContext, useEffect } from "react";
+import * as XLSX from "xlsx";
+import axios from "axios";
+import { SessionContext } from "../../Context/SessionContext";
+import { useNavigate } from "react-router-dom";
+
+const UpdateItems = () => {
+    const { session } = useContext(SessionContext);
+    const navigate = useNavigate();
+
+    const [rows, setRows] = useState([]);
+    const [overallProgress, setOverallProgress] = useState(0);
+
+    useEffect(() => {
+        if (!session) navigate("/");
+    }, [session, navigate]);
+
+    // Download template with headers
+    const handleDownloadTemplate = () => {
+        const headers = [
+            ["Item Code", "Budget Head Code", "Item Name", "Item Group Code", "UOM"]
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(headers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Item Template");
+        XLSX.writeFile(wb, "Item_Template.xlsx");
+    };
+
+    // Handle file upload and parse
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: "array" });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            const parsed = sheetData
+                .slice(1) // skip header
+                .filter((r) => r[0]) // ItemCode mandatory
+                .map((r) => ({
+                    itemCode: r[0]?.toString().trim(),
+                    budgetHeadCode: r[1]?.toString().trim() || "",
+                    itemName: r[2]?.toString().trim() || "",
+                    itemGroupCode: r[3]?.toString().trim() || "",
+                    uom: r[4]?.toString().trim() || "",
+                    status: "Pending",
+                    progress: 0
+                }));
+
+            setRows(parsed);
+            setOverallProgress(0);
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
+    // Process rows
+    const handleProcess = async () => {
+        const total = rows.length;
+        const temp = [...rows];
+
+        for (let i = 0; i < total; i++) {
+            temp[i].status = "Processing...";
+            temp[i].progress = 50;
+            setRows([...temp]);
+
+            try {
+                await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/update-items`,
+                    {
+                        ...temp[i], // send entire row
+                        session
+                    }
+                );
+                temp[i].status = "Success";
+            } catch (err) {
+                temp[i].status =
+                    err.response?.data?.sapMessage ||
+                    err.response?.data?.message ||
+                    "Failed";
+            }
+
+            temp[i].progress = 100;
+            setRows([...temp]);
+            setOverallProgress(Math.round(((i + 1) / total) * 100));
+        }
+    };
+
+    // Export results
+    const handleExportToExcel = () => {
+        if (rows.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        const exportData = rows.map((r) => ({
+            "Item Code": r.itemCode,
+            "Budget Head Code": r.budgetHeadCode,
+            "Item Name": r.itemName,
+            "Item Group Code": r.itemGroupCode,
+            UOM: r.uom,
+            Status: r.status,
+            "Progress (%)": r.progress
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Item Update");
+        XLSX.writeFile(wb, "Item_Update.xlsx");
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 py-10">
+            <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl p-6">
+                <h2 className="text-2xl font-bold text-center mb-6">
+                    Bulk Item Update
+                </h2>
+
+                <div className="flex justify-between gap-4 mb-6">
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="w-3xs px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                        Download Template
+                    </button>
+                    <div className="flex justify-center items-center gap-2">
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={handleFileUpload}
+                            className="cursor-pointer"
+                        />
+                        {rows.length > 0 && (
+                            <button
+                                onClick={handleProcess}
+                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                            >
+                                Process Records
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                {overallProgress > 0 && (
+                    <div className="mb-6">
+                        <div className="w-full bg-gray-200 h-3 rounded">
+                            <div
+                                className="bg-green-600 h-3 rounded transition-all"
+                                style={{ width: `${overallProgress}%` }}
+                            />
+                        </div>
+                        <p className="text-sm text-center mt-1 text-gray-600">
+                            Overall Progress: {overallProgress}%
+                        </p>
+                    </div>
+                )}
+
+                <table className="w-full border border-gray-300 rounded-lg">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="px-4 py-2 border text-left">Item Code</th>
+                            <th className="px-4 py-2 border text-left">Budget Head Code</th>
+                            <th className="px-4 py-2 border text-left">Item Name</th>
+                            <th className="px-4 py-2 border text-left">Item Group Code</th>
+                            <th className="px-4 py-2 border text-left">UOM</th>
+                            <th className="px-4 py-2 border text-left">Status</th>
+                            <th className="px-4 py-2 border text-center">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.length > 0 ? (
+                            rows.map((r, i) => (
+                                <tr key={i} className="hover:bg-gray-50">
+                                    <td className="px-4 py-2 border">{r.itemCode}</td>
+                                    <td className="px-4 py-2 border">{r.budgetHeadCode}</td>
+                                    <td className="px-4 py-2 border">{r.itemName}</td>
+                                    <td className="px-4 py-2 border">{r.itemGroupCode}</td>
+                                    <td className="px-4 py-2 border">{r.uom}</td>
+                                    <td
+                                        className={`px-4 py-2 border font-medium ${r.status === "Success"
+                                                ? "text-green-600"
+                                                : r.status === "Pending" || r.status === "Processing..."
+                                                    ? "text-gray-600"
+                                                    : "text-red-600"
+                                            }`}
+                                    >
+                                        {r.status}
+                                    </td>
+                                    <td className="px-4 py-2 border text-center">{r.progress}%</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={7} className="text-center py-2 text-gray-500">
+                                    Upload a file to populate rows
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+
+                {rows.length > 0 && (
+                    <button
+                        onClick={handleExportToExcel}
+                        className="w-3xs mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                    >
+                        Export to Excel
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export default UpdateItems;

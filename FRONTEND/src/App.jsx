@@ -25,42 +25,60 @@ import AddApInvoice from "../Pages/Purchase/ApInvoice/Add"
 import CancelApInvoice from "../Pages/Purchase/ApInvoice/Cancel"
 import AddOutgoingPayment from "../Pages/Purchase/OutgoingPayment/Add"
 import CancelOutgoingPayment from "../Pages/Purchase/OutgoingPayment/Cancel";
+import BussinessPartnerRecon from "../Pages/reconciliation/BussinessPartnerRecon";
+import AccountsRecon from "../Pages/reconciliation/AccountsRecon";
+import RemovePurchaseReq from "../Pages/Purchase/PurchaseRequest/Remove";
+import UpdateItems from "../Pages/Items/Update";
+import AddTitle from "../Pages/ChartOfAccounts/AddTitle";
+import AddActive from "../Pages/ChartOfAccounts/AddActive";
+import Dashboard from "../components/Dashboard";
 
 function App() {
   return (
     <>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/main" element={<Main />}>
-          <Route path="bussiness-partner/add" element={<AddBussinessPartner />} />
-          <Route path="bussiness-partner/update" element={<UpdateBussinessPartner />} />
-          <Route path="bussiness-partner/delete" element={<DeleteBussinessPartner />} />
-          <Route path="sales-order/add" element={<AddSalesOrder />} />
-          <Route path="sales-order/cancel" element={<CancelSalesOrder />} />
-          <Route path="sales-order/close" element={<CloseSalesOrder />} />
-          <Route path="delivery/add" element={<AddDelivery />} />
-          <Route path="delivery/cancel" element={<CancelDelivery />} />
-          <Route path="delivery/close" element={<CloseDelivery />} />
-          <Route path="ar-invoice/add" element={<AddArInvoice />} />
-          <Route path="ar-invoice/cancel" element={<ArCancel />} />
-          <Route path="incoming-payment/add" element={<AddIncomingPayment />} />
-          <Route path="incoming-payment/cancel" element={<CancelOutgoingPayment />} />
-          <Route path="purchase-order/add" element={<AddPurchaseOrdr />} />
-          <Route path="purchase-order/cancel" element={<CancelPurchaseOrdr />} />
-          <Route path="purchase-order/close" element={<ClosePurchaseOrdr />} />
-          <Route path="grpo/add" element={<AddGRPO />} />
-          <Route path="grpo/cancel" element={<CancelGRPO />} />
-          <Route path="grpo/close" element={<CloseGRPO />} />
-          <Route path="ap-invoice/add" element={<AddApInvoice />} />
-          <Route path="ap-invoice/cancel" element={<CancelApInvoice />} />
-          <Route path="outgoing-payment/add" element={<AddOutgoingPayment />} />
-          <Route path="outgoing-payment/cancel" element={<CancelOutgoingPayment />} />
-        </Route>
-        <Route path="*" element={<div>Path not found....</div>}
-        />
-      </Routes>
+      <div flex flex-col h-full>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/main" element={<Main />}>
+            <Route index element={<Dashboard />} />
+            <Route path="items/update" element={<UpdateItems />} />
+            <Route path="bussiness-partner/add" element={<AddBussinessPartner />} />
+            <Route path="bussiness-partner/update" element={<UpdateBussinessPartner />} />
+            <Route path="bussiness-partner/delete" element={<DeleteBussinessPartner />} />
+            <Route path="sales-order/add" element={<AddSalesOrder />} />
+            <Route path="sales-order/cancel" element={<CancelSalesOrder />} />
+            <Route path="sales-order/close" element={<CloseSalesOrder />} />
+            <Route path="delivery/add" element={<AddDelivery />} />
+            <Route path="delivery/cancel" element={<CancelDelivery />} />
+            <Route path="delivery/close" element={<CloseDelivery />} />
+            <Route path="ar-invoice/add" element={<AddArInvoice />} />
+            <Route path="ar-invoice/cancel" element={<ArCancel />} />
+            <Route path="incoming-payment/add" element={<AddIncomingPayment />} />
+            <Route path="incoming-payment/cancel" element={<CancelOutgoingPayment />} />
+            <Route path="purchase-request/remove" element={<RemovePurchaseReq />} />
+            <Route path="purchase-order/add" element={<AddPurchaseOrdr />} />
+            <Route path="purchase-order/cancel" element={<CancelPurchaseOrdr />} />
+            <Route path="purchase-order/close" element={<ClosePurchaseOrdr />} />
+            <Route path="grpo/add" element={<AddGRPO />} />
+            <Route path="grpo/cancel" element={<CancelGRPO />} />
+            <Route path="grpo/close" element={<CloseGRPO />} />
+            <Route path="ap-invoice/add" element={<AddApInvoice />} />
+            <Route path="ap-invoice/cancel" element={<CancelApInvoice />} />
+            <Route path="outgoing-payment/add" element={<AddOutgoingPayment />} />
+            <Route path="outgoing-payment/cancel" element={<CancelOutgoingPayment />} />
+            <Route path="reconciliation/bussiness-partners" element={<BussinessPartnerRecon />} />
+            <Route path="reconciliation/gl-accounts" element={<AccountsRecon />} />
+            <Route path="chart-of-accounts/add-title-acc" element={<AddTitle />} />
+            <Route path="chart-of-accounts/add-active-acc" element={<AddActive />} />
+          </Route>
+          <Route path="*" element={<div>Path not found....</div>}
+          />
+        </Routes>
+
+      </div>
+
     </>
   );
 }

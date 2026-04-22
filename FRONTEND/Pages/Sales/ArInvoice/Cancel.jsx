@@ -7,14 +7,26 @@ import { useNavigate } from "react-router-dom";
 const ArCancel = () => {
     const { session } = useContext(SessionContext);
     const navigate = useNavigate();
+
     const [rows, setRows] = useState([]);
     const [overallProgress, setOverallProgress] = useState(0);
 
     useEffect(() => {
         if (!session) {
-            navigate("/")
+            navigate("/");
         }
-    })
+    }, [session, navigate]);
+
+    // ✅ Download Template
+    const handleDownloadTemplate = () => {
+        const headers = [["DocEntry"]];
+        const ws = XLSX.utils.aoa_to_sheet(headers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "AR Cancel Template");
+        XLSX.writeFile(wb, "AR_Invoice_Cancel_Template.xlsx");
+    };
+
+    // ✅ Upload File (skip first row)
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -27,10 +39,10 @@ const ArCancel = () => {
             const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
             const parsed = sheetData
-                .map((r) => r[0])
-                .filter(Boolean)
-                .map((docEntry) => ({
-                    docEntry,
+                .slice(1) // ✅ skip header row
+                .filter((r) => r[0])
+                .map((r) => ({
+                    docEntry: r[0]?.toString().trim(),
                     status: "Pending",
                     progress: 0,
                     cancelledDocNum: "-",
@@ -43,6 +55,7 @@ const ArCancel = () => {
         reader.readAsArrayBuffer(file);
     };
 
+    // ✅ Cancel Logic (UNCHANGED)
     const handleCancel = async () => {
         const total = rows.length;
         const temp = [...rows];
@@ -53,39 +66,43 @@ const ArCancel = () => {
             setRows([...temp]);
 
             try {
-                await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/cancel-invoice`, {
-                    docEntry: temp[i].docEntry,
-                    session,
-                });
+                await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/cancel-invoice`,
+                    {
+                        docEntry: temp[i].docEntry,
+                        session,
+                    }
+                );
 
                 temp[i].status = "Success";
-
-                // try {
-                //     const res = await axios.get(
-                //         "http://localhost:4000/api/cancelled-invoice-docnum",
-                //         {
-                //             params: {
-                //                 docEntry: temp[i].docEntry,
-                //                 session,
-                //             },
-                //         }
-                //     );
-
-                //     temp[i].cancelledDocNum = res.data?.DocNum || "No document number generated";
-                // } catch {
-                //     temp[i].cancelledDocNum = "No document number generated";
-                // }
-
             } catch (err) {
-                temp[i].status = err.response?.data?.sapMessage || "Cancellation failed";
-                // temp[i].cancelledDocNum = "No document number generated";
-
+                temp[i].status =
+                    err.response?.data?.sapMessage || "Cancellation failed";
             }
 
             temp[i].progress = 100;
             setRows([...temp]);
             setOverallProgress(Math.round(((i + 1) / total) * 100));
         }
+    };
+
+    // ✅ Export Result
+    const handleExportToExcel = () => {
+        if (rows.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        const exportData = rows.map((r) => ({
+            DocEntry: r.docEntry,
+            Status: r.status,
+            "Progress (%)": r.progress,
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "AR Cancel Result");
+        XLSX.writeFile(wb, "AR_Invoice_Cancel_Result.xlsx");
     };
 
     return (
@@ -95,24 +112,35 @@ const ArCancel = () => {
                     Bulk Cancel A/R Invoices
                 </h2>
 
-                <div className="flex items-center justify-center gap-4 mb-6">
-                    <input
-                        type="file"
-                        accept=".xlsx,.xls"
-                        onChange={handleFileUpload}
-                        className="block text-sm hover:cursor-pointer "
-                    />
+                {/* Buttons Row */}
+                <div className="flex justify-between items-center gap-4 mb-6">
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                        Download Template
+                    </button>
 
-                    {rows.length > 0 && (
-                        <button
-                            onClick={handleCancel}
-                            className="px-4 py-2 bg-green-500 text-white hover:cursor-pointer rounded-lg hover:bg-pink-400 transition"
-                        >
-                            Cancel Invoices
-                        </button>
-                    )}
+                    <div className="flex items-center gap-4">
+                        <input
+                            type="file"
+                            accept=".xlsx,.xls"
+                            onChange={handleFileUpload}
+                            className="block text-sm cursor-pointer"
+                        />
+
+                        {rows.length > 0 && (
+                            <button
+                                onClick={handleCancel}
+                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                            >
+                                Cancel Invoices
+                            </button>
+                        )}
+                    </div>
                 </div>
 
+                {/* Overall Progress */}
                 {overallProgress > 0 && (
                     <div className="mb-6">
                         <div className="w-full bg-gray-200 h-3 rounded">
@@ -127,6 +155,7 @@ const ArCancel = () => {
                     </div>
                 )}
 
+                {/* Table */}
                 {rows.length > 0 && (
                     <div className="overflow-x-auto">
                         <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
@@ -135,10 +164,6 @@ const ArCancel = () => {
                                     <th className="px-4 py-2 border text-left">DocEntry</th>
                                     <th className="px-4 py-2 border text-left">Status</th>
                                     <th className="px-4 py-2 border text-center">Progress</th>
-                                    {/* <th className="px-4 py-2 border text-left">
-                                        Cancelled DocNum
-                                    </th> */}
-
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,11 +172,11 @@ const ArCancel = () => {
                                         <td className="px-4 py-2 border">{r.docEntry}</td>
                                         <td
                                             className={`px-4 py-2 border font-medium ${r.status === "Success"
-                                                ? "text-green-600"
-                                                : r.status === "Pending" ||
-                                                    r.status === "Processing..."
-                                                    ? "text-gray-600"
-                                                    : "text-red-600"
+                                                    ? "text-green-600"
+                                                    : r.status === "Pending" ||
+                                                        r.status === "Processing..."
+                                                        ? "text-gray-600"
+                                                        : "text-red-600"
                                                 }`}
                                         >
                                             {r.status}
@@ -159,15 +184,21 @@ const ArCancel = () => {
                                         <td className="px-4 py-2 border text-center">
                                             {r.progress}%
                                         </td>
-                                        {/* <td className="px-4 py-2 border">
-                                            {r.cancelledDocNum}
-                                        </td> */}
-
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
+                )}
+
+                {/* Export Button */}
+                {rows.length > 0 && (
+                    <button
+                        onClick={handleExportToExcel}
+                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                    >
+                        Export Result
+                    </button>
                 )}
             </div>
         </div>
