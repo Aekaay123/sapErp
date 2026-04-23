@@ -71,7 +71,7 @@ const UpdateBusinessPartner = () => {
           `${import.meta.env.VITE_BACKEND_URL}/api/update-business-partners`,
           {
             ...temp[i],
-            session,
+            sessionId: session.sessionId,
           }
         );
         temp[i].status = "Success";

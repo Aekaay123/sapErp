@@ -11,13 +11,18 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { session, setSession } = useContext(SessionContext)
+  const [server, setServer] = useState("20")
 
   const companies = [
     { code: "BCCL_DB_TST", name: "BCCL_TEST" },
     { code: "BCCL_DB_PROD", name: "BCCL_PROD" },
-    { code: "PROD_COMP", name: "Production Company" },
+    { code: "BBPL_DB_PRD", name: "BBPL_PROD" },
   ];
 
+  const servers = [
+    { code: "20", name: "Server 20" },
+    { code: "8", name: "Server 8" },
+  ]
   const [company, setCompany] = useState(companies[0].code);
 
   const navigate = useNavigate();
@@ -29,9 +34,12 @@ export default function Login() {
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/login`, {
         employeeCode,
         password,
-        company
+        company, server
       });
-      setSession(response.data.session)
+      setSession({
+        sessionId: response.data.session,
+        server: server
+      })
       navigate("/main");
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
@@ -130,6 +138,24 @@ export default function Login() {
                 {companies.map((c) => (
                   <option key={c.code} value={c.code} className="bg-slate-800">
                     {c.name}
+                  </option>
+                ))}
+              </select>
+            </motion.div>
+            <motion.div variants={itemVariants} className="relative group">
+              <label className="block text-sm font-medium text-slate-300 mb-2">
+                Server
+              </label>
+
+              <select
+                value={server}
+                onChange={(e) => setServer(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"
+                required
+              >
+                {servers.map((s) => (
+                  <option key={s.code} value={s.code} className="bg-slate-800">
+                    {s.name}
                   </option>
                 ))}
               </select>

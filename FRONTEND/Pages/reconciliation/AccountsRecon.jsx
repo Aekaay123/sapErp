@@ -29,6 +29,20 @@ const AccountsRecon = () => {
         XLSX.writeFile(workbook, `BP_Reconciliation_${reconDate}.xlsx`);
     };
 
+    // ✅ NEW: Download Template
+    const handleDownloadTemplate = () => {
+        const headers = [
+            ["Account"]
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(headers);
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Account Template");
+
+        XLSX.writeFile(workbook, "Account_Reconciliation_Template.xlsx");
+    };
+
     // Handle file upload
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
@@ -43,6 +57,7 @@ const AccountsRecon = () => {
 
             // Parse account codes
             const parsed = sheetData
+                .slice(1)
                 .map((r) => r[0])
                 .filter(Boolean)
                 .map((acc) => ({
@@ -76,7 +91,8 @@ const AccountsRecon = () => {
             try {
                 // 1️⃣ Call backend to get open transactions
                 const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/get-open-transactions`, {
-                    session,
+                    sessionId: session.sessionId,
+                    server: session.server,
                     accountNo: temp[i].account,
                     reconDate,
                 });
@@ -93,7 +109,8 @@ const AccountsRecon = () => {
                 } else {
                     // 2️⃣ Call backend to perform reconciliation
                     await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/reconcile-account`, {
-                        session,
+                        sessionId: session.sessionId,
+                        server: session.server,
                         accountNo: temp[i].account,
                         reconDate,
                         rows: openTransRows,
@@ -119,6 +136,15 @@ const AccountsRecon = () => {
                 </h2>
 
                 <div className="flex flex-col items-center gap-4 mb-6">
+
+                    {/* ✅ NEW BUTTON */}
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                        Download Template
+                    </button>
+
                     <input
                         type="file"
                         accept=".xlsx,.xls"
@@ -189,6 +215,7 @@ const AccountsRecon = () => {
                                 ))}
                             </tbody>
                         </table>
+
                         {rows.length > 0 && (
                             <button
                                 onClick={handleExportToExcel}

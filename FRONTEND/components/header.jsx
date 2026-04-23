@@ -121,8 +121,11 @@ export function Header() {
   const handleLogout = async () => {
     if (!session) return;
     try {
-      await axios.post("http://localhost:4000/api/logout", { session });
-      setSession("");
+      await axios.post("http://localhost:4000/api/logout",
+        { sessionId: session.sessionId, server: session.server }
+      );
+      alert("Logged out successfully");
+      setSession(null);
       navigate("/");
     } catch (error) { console.error(error); }
   };
