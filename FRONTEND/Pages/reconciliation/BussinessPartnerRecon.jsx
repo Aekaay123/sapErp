@@ -43,6 +43,7 @@ const BussinessPartnerRecon = () => {
             const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
             const parsed = sheetData
+                .slice(1)
                 .map((r) => r[0])
                 .filter(Boolean)
                 .map((bp) => ({
@@ -58,6 +59,18 @@ const BussinessPartnerRecon = () => {
         reader.readAsArrayBuffer(file);
     };
 
+    const handleDownloadTemplate = () => {
+        const headers = [
+            ["BP Code"]
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(headers);
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "BP Reconciliation Template");
+
+        XLSX.writeFile(workbook, "BP_Reconciliation_Template.xlsx");
+    };
     // Handle BP reconciliation
     const handleReconciliation = async () => {
         if (!reconDate) {
@@ -78,7 +91,8 @@ const BussinessPartnerRecon = () => {
                 const res = await axios.post(
                     `${import.meta.env.VITE_BACKEND_URL}/api/get-open-bptransactions`,
                     {
-                        session,
+                        sessionId: session.sessionId,
+                        server: session.server,
                         reconDate,
                         CardOrAccount: "coaCard",
                         bpCode: temp[i].bpCode,
@@ -101,7 +115,8 @@ const BussinessPartnerRecon = () => {
                     await axios.post(
                         `${import.meta.env.VITE_BACKEND_URL}/api/reconcile-bp`,
                         {
-                            session,
+                            sessionId: session.sessionId,
+                            server: session.server,
                             CardOrAccount: "coaCard",
                             reconDate,
                             rows: openTransRows,
@@ -129,6 +144,12 @@ const BussinessPartnerRecon = () => {
                 </h2>
 
                 <div className="flex flex-col items-center gap-4 mb-6">
+                    <button
+                        onClick={handleDownloadTemplate}
+                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                    >
+                        Download Template
+                    </button>
                     <input
                         type="file"
                         accept=".xlsx,.xls"

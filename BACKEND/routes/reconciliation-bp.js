@@ -3,11 +3,11 @@ const https = require("https");
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 module.exports = async (req, res) => {
-  const { session, reconDate, rows } = req.body;
+  const { sessionId, server, reconDate, rows } = req.body;
 
-  if (!session || !reconDate || !rows || !Array.isArray(rows)) {
+  if (!sessionId || !server || !reconDate || !rows || !Array.isArray(rows)) {
     return res.status(400).json({
-      message: "Session, reconDate, and rows are required",
+      message: "Session, server, reconDate, and rows are required",
     });
   }
   try {
@@ -18,14 +18,14 @@ module.exports = async (req, res) => {
     };
 
     const response = await axios.post(
-      "https://192.168.196.20:50000/b1s/v1/InternalReconciliations",
+      `https://192.168.196.${server}:50000/b1s/v1/InternalReconciliations`,
       body,
       {
         headers: {
-          Cookie: `B1SESSION=${session}`,
+          Cookie: `B1SESSION=${sessionId}`,
         },
         httpsAgent: new https.Agent({ rejectUnauthorized: false }),
-      }
+      },
     );
     res.json({
       message: "Business Partner reconciliation successful",
