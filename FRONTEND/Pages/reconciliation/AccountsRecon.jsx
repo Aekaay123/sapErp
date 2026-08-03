@@ -9,6 +9,9 @@ const AccountsRecon = () => {
     const [overallProgress, setOverallProgress] = useState(0);
     const [reconDate, setReconDate] = useState("");
 
+    // =========================
+    // EXPORT
+    // =========================
     const handleExportToExcel = () => {
         if (rows.length === 0) {
             alert("No data to export");
@@ -16,34 +19,32 @@ const AccountsRecon = () => {
         }
 
         const exportData = rows.map((r) => ({
-            "BP Code": r.bpCode,
+            "Account": r.account,
             "Status": r.status,
+            "JE Created": r.jeCreated ? "YES" : "NO",
             "Progress (%)": r.progress,
         }));
 
-        const worksheet = XLSX.utils.json_to_sheet(exportData);
-        const workbook = XLSX.utils.book_new();
-
-        XLSX.utils.book_append_sheet(workbook, worksheet, "BP Reconciliation");
-
-        XLSX.writeFile(workbook, `BP_Reconciliation_${reconDate}.xlsx`);
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Account Reconciliation");
+        XLSX.writeFile(wb, `Account_Reconciliation_${reconDate}.xlsx`);
     };
 
-    // ✅ NEW: Download Template
+    // =========================
+    // TEMPLATE
+    // =========================
     const handleDownloadTemplate = () => {
-        const headers = [
-            ["Account"]
-        ];
-
-        const worksheet = XLSX.utils.aoa_to_sheet(headers);
-        const workbook = XLSX.utils.book_new();
-
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Account Template");
-
-        XLSX.writeFile(workbook, "Account_Reconciliation_Template.xlsx");
+        const headers = [["Account"]];
+        const ws = XLSX.utils.aoa_to_sheet(headers);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Template");
+        XLSX.writeFile(wb, "Account_Reconciliation_Template.xlsx");
     };
 
-    // Handle file upload
+    // =========================
+    // FILE UPLOAD
+    // =========================
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -55,7 +56,6 @@ const AccountsRecon = () => {
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-            // Parse account codes
             const parsed = sheetData
                 .slice(1)
                 .map((r) => r[0])
@@ -64,6 +64,7 @@ const AccountsRecon = () => {
                     account: acc,
                     status: "Pending",
                     progress: 0,
+                    jeCreated: false, // 🔥 NEW
                 }));
 
             setRows(parsed);
@@ -73,7 +74,9 @@ const AccountsRecon = () => {
         reader.readAsArrayBuffer(file);
     };
 
-    // Handle reconciliation
+    // =========================
+    // RECONCILIATION (UPDATED)
+    // =========================
     const handleReconciliation = async () => {
         if (!reconDate) {
             alert("Please enter reconciliation date");
@@ -89,37 +92,22 @@ const AccountsRecon = () => {
             setRows([...temp]);
 
             try {
-                // 1️⃣ Call backend to get open transactions
-                const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/get-open-transactions`, {
-                    sessionId: session.sessionId,
-                    server: session.server,
-                    accountNo: temp[i].account,
-                    reconDate,
-                });
-
-                const openTransRows = res.data.InternalReconciliationOpenTransRows.map((row) => ({
-                    Selected: "tYES",
-                    TransId: row.TransId,
-                    TransRowId: row.TransRowId,
-                    ReconcileAmount: row.ReconcileAmount,
-                }));
-
-                if (openTransRows.length === 0) {
-                    temp[i].status = "No open transactions";
-                } else {
-                    // 2️⃣ Call backend to perform reconciliation
-                    await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/reconcile-account`, {
+                const res = await axios.post(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/reconcile-account`,
+                    {
                         sessionId: session.sessionId,
                         server: session.server,
                         accountNo: temp[i].account,
                         reconDate,
-                        rows: openTransRows,
-                    });
+                    }
+                );
 
-                    temp[i].status = "Reconciled";
-                }
+                temp[i].status = "Reconciled";
+                temp[i].jeCreated = res.data.jeCreated; // 🔥 IMPORTANT
             } catch (err) {
-                temp[i].status = err.response?.data?.sapMessage || "Failed";
+                temp[i].status =
+                    err.response?.data?.sapMessage || "Failed";
+                temp[i].jeCreated = false;
             }
 
             temp[i].progress = 100;
@@ -128,6 +116,9 @@ const AccountsRecon = () => {
         }
     };
 
+    // =========================
+    // UI (MINIMAL CHANGE: ADD COLUMN)
+    // =========================
     return (
         <div className="min-h-screen bg-gray-50 py-10">
             <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6">
@@ -137,10 +128,9 @@ const AccountsRecon = () => {
 
                 <div className="flex flex-col items-center gap-4 mb-6">
 
-                    {/* ✅ NEW BUTTON */}
                     <button
                         onClick={handleDownloadTemplate}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                        className="px-4 py-2 bg-blue-600 text-white rounded"
                     >
                         Download Template
                     </button>
@@ -149,11 +139,10 @@ const AccountsRecon = () => {
                         type="file"
                         accept=".xlsx,.xls"
                         onChange={handleFileUpload}
-                        className="block text-sm hover:cursor-pointer"
                     />
 
-                    <div className="flex gap-x-3 items-center justify-center">
-                        <label className="mr-2 font-medium">Reconciliation Date:</label>
+                    <div className="flex gap-3 items-center">
+                        <label>Reconciliation Date:</label>
                         <input
                             type="date"
                             value={reconDate}
@@ -165,7 +154,7 @@ const AccountsRecon = () => {
                     {rows.length > 0 && reconDate && (
                         <button
                             onClick={handleReconciliation}
-                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+                            className="px-4 py-2 bg-green-500 text-white rounded"
                         >
                             Reconcile Accounts
                         </button>
@@ -176,54 +165,56 @@ const AccountsRecon = () => {
                     <div className="mb-6">
                         <div className="w-full bg-gray-200 h-3 rounded">
                             <div
-                                className="bg-green-500 h-3 rounded transition-all"
+                                className="bg-green-500 h-3"
                                 style={{ width: `${overallProgress}%` }}
                             />
                         </div>
-                        <p className="text-sm text-center mt-1 text-gray-600">
+                        <p className="text-center">
                             Overall Progress: {overallProgress}%
                         </p>
                     </div>
                 )}
 
                 {rows.length > 0 && (
-                    <div className="overflow-x-auto flex flex-col items-center justify-center">
-                        <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="px-4 py-2 border text-left">Account</th>
-                                    <th className="px-4 py-2 border text-left">Status</th>
-                                    <th className="px-4 py-2 border text-center">Progress</th>
+                    <div className="overflow-x-auto">
+                        <table className="w-full border">
+                            <thead>
+                                <tr className="bg-gray-100">
+                                    <th className="border px-4 py-2">Account</th>
+                                    <th className="border px-4 py-2">Status</th>
+                                    <th className="border px-4 py-2">JE Created</th> {/* 🔥 NEW */}
+                                    <th className="border px-4 py-2">Progress</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((r, i) => (
-                                    <tr key={i} className="hover:bg-gray-50">
-                                        <td className="px-4 py-2 border">{r.account}</td>
-                                        <td
-                                            className={`px-4 py-2 border font-medium ${r.status === "Reconciled"
-                                                ? "text-green-600"
-                                                : r.status === "Pending" || r.status === "Processing..."
-                                                    ? "text-gray-600"
-                                                    : "text-red-600"
-                                                }`}
-                                        >
-                                            {r.status}
+                                    <tr key={i}>
+                                        <td className="border px-4 py-2">{r.account}</td>
+                                        <td className="border px-4 py-2">{r.status}</td>
+
+                                        {/* 🔥 CHECKBOX */}
+                                        <td className="border px-4 py-2 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={r.jeCreated}
+                                                readOnly
+                                            />
                                         </td>
-                                        <td className="px-4 py-2 border text-center">{r.progress}%</td>
+
+                                        <td className="border px-4 py-2 text-center">
+                                            {r.progress}%
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
-                        {rows.length > 0 && (
-                            <button
-                                onClick={handleExportToExcel}
-                                className="mt-4 px-4 py-2 flex items-center justify-center bg-blue-500 text-white rounded hover:bg-blue-600 transition"
-                            >
-                                Export to Excel
-                            </button>
-                        )}
+                        <button
+                            onClick={handleExportToExcel}
+                            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+                        >
+                            Export to Excel
+                        </button>
                     </div>
                 )}
             </div>

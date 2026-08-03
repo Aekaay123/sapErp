@@ -113,7 +113,7 @@ const UpdateBusinessPartner = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl p-6">
+      <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl p-8 mt-10">
         <h2 className="text-2xl font-bold text-center mb-6">
           Bulk Business Partner Update
         </h2>
@@ -121,7 +121,7 @@ const UpdateBusinessPartner = () => {
         <div className="flex justify-between gap-4 mb-6">
           <button
             onClick={handleDownloadTemplate}
-            className=" w-3xs px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            className=" w-3xs px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition cursor-pointer"
           >
             Download Template
           </button>

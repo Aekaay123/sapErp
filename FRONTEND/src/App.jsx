@@ -4,6 +4,7 @@ import Home from "../Pages/Home";
 import Main from "../Pages/Main";
 import Login from "../Pages/Login";
 import AddBussinessPartner from "../Pages/BussinessPartner/AddBussinessPartner"
+import DownPaymentReqCancel from "../Pages/Sales/DownPaymentReq/Cancel";
 import UpdateBussinessPartner from "../Pages/BussinessPartner/UpdateBussinessPartner"
 import DeleteBussinessPartner from "../Pages/BussinessPartner/DeleteBussinessPartner"
 import AddSalesOrder from "../Pages/Sales/SalesOrder/Add";
@@ -13,6 +14,7 @@ import AddDelivery from "../Pages/Sales/Delivery/Add"
 import CancelDelivery from "../Pages/Sales/Delivery/Cancel";
 import CloseDelivery from "../Pages/Sales/Delivery/Close";
 import AddIncomingPayment from "../Pages/Sales/IncomingPayment/Add"
+import CancelIncomingPayment from "../Pages/Sales/IncomingPayment/Cancel"
 import AddArInvoice from "../Pages/Sales/ArInvoice/Add"
 import ArCancel from "../Pages/Sales/ArInvoice/Cancel";
 import AddPurchaseOrdr from "../Pages/Purchase/PurchaseOrder/Add"
@@ -32,6 +34,8 @@ import UpdateItems from "../Pages/Items/Update";
 import AddTitle from "../Pages/ChartOfAccounts/AddTitle";
 import AddActive from "../Pages/ChartOfAccounts/AddActive";
 import Dashboard from "../components/Dashboard";
+import CopyToCreditMemo from "../Pages/Sales/ArDownPaymentInvoice/CopyTo";
+import UpdateFixedAsset from "../Pages/FixedAsset/Update";
 
 function App() {
   return (
@@ -52,11 +56,13 @@ function App() {
             <Route path="sales-order/close" element={<CloseSalesOrder />} />
             <Route path="delivery/add" element={<AddDelivery />} />
             <Route path="delivery/cancel" element={<CancelDelivery />} />
+            <Route path="copy-to-credit-memo" element={<CopyToCreditMemo />} />
             <Route path="delivery/close" element={<CloseDelivery />} />
             <Route path="ar-invoice/add" element={<AddArInvoice />} />
             <Route path="ar-invoice/cancel" element={<ArCancel />} />
             <Route path="incoming-payment/add" element={<AddIncomingPayment />} />
-            <Route path="incoming-payment/cancel" element={<CancelOutgoingPayment />} />
+            <Route path="incoming-payment/cancel" element={<CancelIncomingPayment />} />
+            <Route path="down-payment-req/cancel" element={<DownPaymentReqCancel />} />
             <Route path="purchase-request/remove" element={<RemovePurchaseReq />} />
             <Route path="purchase-order/add" element={<AddPurchaseOrdr />} />
             <Route path="purchase-order/cancel" element={<CancelPurchaseOrdr />} />
@@ -72,6 +78,7 @@ function App() {
             <Route path="reconciliation/gl-accounts" element={<AccountsRecon />} />
             <Route path="chart-of-accounts/add-title-acc" element={<AddTitle />} />
             <Route path="chart-of-accounts/add-active-acc" element={<AddActive />} />
+            <Route path="fixed-assets/update" element={<UpdateFixedAsset />} />
           </Route>
           <Route path="*" element={<div>Path not found....</div>}
           />

@@ -5,6 +5,7 @@ const SideBar = () => {
     const [bpOpen, setBpOpen] = useState(false);
     const [salesOpen, setSalesOpen] = useState(false);
     const [salesOrdrOpen, setIsSalesOrdrOpen] = useState(false)
+    const [downpaymentReqOpen, setDownPaymentReqOpen] = useState(false)
     const [deliveryOpen, setIsDeliveryOpen] = useState(false)
     const [arInvoiceOpen, setArInvoiceOpen] = useState(false);
     const [incomingPaymentOpen, setIncomingPaymentOpen] = useState(false);
@@ -17,6 +18,8 @@ const SideBar = () => {
     const [purchaseRequestOpen, setPurchaseRequestOpen] = useState(false)
     const [itemsOpen, setItemsOpen] = useState(false)
     const [coaOpen, setCoaOpen] = useState(false)
+    const [downPaymentInvoiceOpen, setDownPaymentInvoiceOpen] = useState(false);
+    const [fAopen, setFaOpen] = useState(false)
 
     const location = useLocation();
 
@@ -43,8 +46,23 @@ const SideBar = () => {
                 )}
             </div>
 
+            {/* Fixed Asset DROPDOWN */}
+            <div>
+                <button
+                    onClick={() => setFaOpen(!fAopen)}
+                    className={`w-full text-left font-bold mb-2 transition hover:text-blue-600`}
+                >
+                    Fixed Assets {fAopen ? "-" : "+"}
+                </button>
+                {fAopen && (
+                    <ul className="ml-2 space-y-1">
+                        <li><NavLink to="/main/fixed-assets/add" className={linkClass}>Add</NavLink></li>
+                        <li><NavLink to="/main/fixed-assets/update" className={linkClass}>Update</NavLink></li>
+                    </ul>
+                )}
+            </div>
 
-            {/* BUSINESS PARTNER DROPDOWN */}
+            {/* BP ASSETS DROPDOWN */}
             <div>
                 <button
                     onClick={() => setBpOpen(!bpOpen)}
@@ -84,6 +102,37 @@ const SideBar = () => {
                                     <li><NavLink to="/main/sales-order/add" className={linkClass}>Add</NavLink></li>
                                     <li><NavLink to="/main/sales-order/cancel" className={linkClass}>Cancel</NavLink></li>
                                     <li><NavLink to="/main/sales-order/close" className={linkClass}>Close</NavLink></li>
+                                </ul>
+                            )}
+                        </li>
+                        {/* down payment */}
+                        <li>
+                            <button
+                                onClick={() => setDownPaymentReqOpen(!downpaymentReqOpen)}
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
+                            >
+                                Down Payment Request {downpaymentReqOpen ? "-" : "+"}
+                            </button>
+                            {downpaymentReqOpen && (
+                                <ul className="ml-4 space-y-1">
+                                    <li><NavLink to="/main/down-payment-req/add" className={linkClass}>Add</NavLink></li>
+                                    <li><NavLink to="/main/down-payment-req/cancel" className={linkClass}>Cancel</NavLink></li>
+                                    <li><NavLink to="/main/down-payment-req/close" className={linkClass}>Close</NavLink></li>
+                                </ul>
+                            )}
+                        </li>
+                        {/* down payment invoice-copy to*/}
+                        <li>
+                            <button
+                                onClick={() => setDownPaymentInvoiceOpen(!downPaymentInvoiceOpen)}
+                                className={`w-full text-left px-3 py-2 rounded flex justify-between items-center transition`}
+                            >
+                                Down Payment Invoice{downPaymentInvoiceOpen ? "-" : "+"}
+                            </button>
+                            {downPaymentInvoiceOpen && (
+                                <ul className="ml-4 space-y-1">
+                                    <li><NavLink to="/main/down-payment-req/add" className={linkClass}>Add</NavLink></li>
+                                    <li><NavLink to="copy-to-credit-memo" className={linkClass}>Copy To Credit Memo</NavLink></li>
                                 </ul>
                             )}
                         </li>

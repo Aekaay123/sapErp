@@ -1,10 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import * as XLSX from "xlsx";
 import axios from "axios";
-import { SessionContext } from "../../../Context/SessionContext";
+import { SessionContext } from "../../Context/SessionContext";
 import { useNavigate } from "react-router-dom";
 
-const IncomingPaymentCancel = () => {
+const UpdateFixedAsset = () => {
     const { session } = useContext(SessionContext);
     const navigate = useNavigate();
 
@@ -15,16 +15,16 @@ const IncomingPaymentCancel = () => {
         if (!session) navigate("/");
     }, [session, navigate]);
 
-    // 🔹 Download Template
+    // Download template with headers
     const handleDownloadTemplate = () => {
-        const headers = [["DocEntry"]];
+        const headers = [["Asset Code", "Description", "Item Group", "Depreaciaton Type"]];
         const ws = XLSX.utils.aoa_to_sheet(headers);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Incoming Payment Template");
-        XLSX.writeFile(wb, "IncomingPayment_Template.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Fixed Asset Template");
+        XLSX.writeFile(wb, "Fixed_Asset_Upload_Template.xlsx");
     };
 
-    // 🔹 Upload File
+    // Handle file upload and parse from second row
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -37,10 +37,13 @@ const IncomingPaymentCancel = () => {
             const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
             const parsed = sheetData
-                .slice(1)
-                .filter((r) => r[0])
+                .slice(1) // skip header
+                .filter((r) => r[0]) // only rows with assetCode
                 .map((r) => ({
-                    docEntry: r[0]?.toString().trim(),
+                    assetCode: r[0]?.toString().trim(),
+                    description: r[1]?.toString().trim() || "",
+                    itemGroup: r[2]?.toString().trim() || "",
+                    depreciationType: r[3]?.toString().trim() || "",
                     status: "Pending",
                     progress: 0,
                 }));
@@ -52,8 +55,8 @@ const IncomingPaymentCancel = () => {
         reader.readAsArrayBuffer(file);
     };
 
-    // 🔹 Process Cancel
-    const handleCancel = async () => {
+    // Process rows
+    const handleProcess = async () => {
         const total = rows.length;
         const temp = [...rows];
 
@@ -64,19 +67,20 @@ const IncomingPaymentCancel = () => {
 
             try {
                 await axios.post(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/cancel-incoming-payment`,
+                    `${import.meta.env.VITE_BACKEND_URL}/api/update-fixed-assets`,
                     {
-                        docEntry: temp[i].docEntry,
+                        ...temp[i],
                         sessionId: session.sessionId,
-                        server: session.server,
+                        server: session.server
+
                     }
                 );
-
                 temp[i].status = "Success";
             } catch (err) {
                 temp[i].status =
                     err.response?.data?.sapMessage ||
-                    err.response?.data?.message
+                    err.response?.data?.message ||
+                    "Failed";
             }
 
             temp[i].progress = 100;
@@ -85,7 +89,7 @@ const IncomingPaymentCancel = () => {
         }
     };
 
-    // 🔹 Export Results
+    // Export filled template with progress and status
     const handleExportToExcel = () => {
         if (rows.length === 0) {
             alert("No data to export");
@@ -93,55 +97,54 @@ const IncomingPaymentCancel = () => {
         }
 
         const exportData = rows.map((r) => ({
-            DocEntry: r.docEntry,
-            Status: r.status,
+            "Asset Code": r.assetCode,
+            "Description": r.description,
+            "Item Group": r.itemGroup,
+            "Depreciation Type": r.depreciationType,
+            "Status": r.status,
             "Progress (%)": r.progress,
         }));
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Results");
-        XLSX.writeFile(wb, "IncomingPayment_Cancel_Result.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Fixed Asset Update");
+        XLSX.writeFile(wb, "Fixed_Asset_Update.xlsx");
     };
 
     return (
         <div className="min-h-screen bg-gray-50 py-10">
-            <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-xl p-6">
-
+            <div className="max-w-6xl mx-auto bg-white shadow-xl rounded-xl p-8 mt-10">
                 <h2 className="text-2xl font-bold text-center mb-6">
-                    Bulk Incoming Payment Cancellation
+                    Bulk Fixed Asset Update
                 </h2>
 
-                {/* 🔹 Buttons */}
                 <div className="flex justify-between gap-4 mb-6">
-
                     <button
                         onClick={handleDownloadTemplate}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                        className=" w-3xs px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition cursor-pointer"
                     >
                         Download Template
                     </button>
-
-                    <div className="flex items-center gap-3">
+                    <div className="flex justify-center items-center">
                         <input
                             type="file"
                             accept=".xlsx,.xls"
                             onChange={handleFileUpload}
-                            className="cursor-pointer"
+                            className="cursor-pointer flex items-center justify-center"
                         />
 
                         {rows.length > 0 && (
                             <button
-                                onClick={handleCancel}
+                                onClick={handleProcess}
                                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
                             >
-                                Cancel Payments
+                                Process Records
                             </button>
                         )}
                     </div>
+
                 </div>
 
-                {/* 🔹 Progress */}
                 {overallProgress > 0 && (
                     <div className="mb-6">
                         <div className="w-full bg-gray-200 h-3 rounded">
@@ -156,11 +159,13 @@ const IncomingPaymentCancel = () => {
                     </div>
                 )}
 
-                {/* 🔹 Table */}
                 <table className="w-full border border-gray-300 rounded-lg">
                     <thead className="bg-gray-100">
                         <tr>
-                            <th className="px-4 py-2 border text-left">DocEntry</th>
+                            <th className="px-4 py-2 border text-left">Asset Code</th>
+                            <th className="px-4 py-2 border text-left">Description</th>
+                            <th className="px-4 py-2 border text-left">Item Group</th>
+                            <th className="px-4 py-2 border text-left">Depreciation Type</th>
                             <th className="px-4 py-2 border text-left">Status</th>
                             <th className="px-4 py-2 border text-center">Progress</th>
                         </tr>
@@ -169,7 +174,10 @@ const IncomingPaymentCancel = () => {
                         {rows.length > 0 ? (
                             rows.map((r, i) => (
                                 <tr key={i} className="hover:bg-gray-50">
-                                    <td className="px-4 py-2 border">{r.docEntry}</td>
+                                    <td className="px-4 py-2 border">{r.assetCode}</td>
+                                    <td className="px-4 py-2 border">{r.description}</td>
+                                    <td className="px-4 py-2 border">{r.itemGroup}</td>
+                                    <td className="px-4 py-2 border">{r.depreciationType}</td>
                                     <td
                                         className={`px-4 py-2 border font-medium ${r.status === "Success"
                                             ? "text-green-600"
@@ -180,34 +188,28 @@ const IncomingPaymentCancel = () => {
                                     >
                                         {r.status}
                                     </td>
-                                    <td className="px-4 py-2 border text-center">
-                                        {r.progress}%
-                                    </td>
+                                    <td className="px-4 py-2 border text-center">{r.progress}%</td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={3} className="text-center py-2 text-gray-500">
-                                    No data yet. Upload a file.
+                                <td colSpan={7} className="text-center py-2 text-gray-500">
+                                    No data yet. Upload a file to populate rows.
                                 </td>
                             </tr>
                         )}
                     </tbody>
                 </table>
-
-                {/* 🔹 Export */}
                 {rows.length > 0 && (
                     <button
                         onClick={handleExportToExcel}
-                        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                        className="w-3xs mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
                     >
-                        Export Results
+                        Export to Excel
                     </button>
                 )}
-
             </div>
         </div>
     );
 };
-
-export default IncomingPaymentCancel;
+export default UpdateFixedAsset

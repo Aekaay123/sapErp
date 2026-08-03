@@ -4,7 +4,7 @@ import axios from "axios";
 import { SessionContext } from "../../../Context/SessionContext";
 import { useNavigate } from "react-router-dom";
 
-const IncomingPaymentCancel = () => {
+const DownPaymentReqCancel = () => {
     const { session } = useContext(SessionContext);
     const navigate = useNavigate();
 
@@ -20,8 +20,8 @@ const IncomingPaymentCancel = () => {
         const headers = [["DocEntry"]];
         const ws = XLSX.utils.aoa_to_sheet(headers);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Incoming Payment Template");
-        XLSX.writeFile(wb, "IncomingPayment_Template.xlsx");
+        XLSX.utils.book_append_sheet(wb, ws, "Down Payment Request Template");
+        XLSX.writeFile(wb, "DownPaymentReq_Template.xlsx");
     };
 
     // 🔹 Upload File
@@ -64,7 +64,7 @@ const IncomingPaymentCancel = () => {
 
             try {
                 await axios.post(
-                    `${import.meta.env.VITE_BACKEND_URL}/api/cancel-incoming-payment`,
+                    `${import.meta.env.VITE_BACKEND_URL}/api/cancel-down-payment-req`,
                     {
                         docEntry: temp[i].docEntry,
                         sessionId: session.sessionId,
@@ -101,7 +101,7 @@ const IncomingPaymentCancel = () => {
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Results");
-        XLSX.writeFile(wb, "IncomingPayment_Cancel_Result.xlsx");
+        XLSX.writeFile(wb, "DownPaymentReq_Cancel_Result.xlsx");
     };
 
     return (
@@ -109,7 +109,7 @@ const IncomingPaymentCancel = () => {
             <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-xl p-6">
 
                 <h2 className="text-2xl font-bold text-center mb-6">
-                    Bulk Incoming Payment Cancellation
+                    Bulk Down Payment Request Cancellation
                 </h2>
 
                 {/* 🔹 Buttons */}
@@ -210,4 +210,188 @@ const IncomingPaymentCancel = () => {
     );
 };
 
-export default IncomingPaymentCancel;
+export default DownPaymentReqCancel;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

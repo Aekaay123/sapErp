@@ -17,6 +17,8 @@ export default function Login() {
     { code: "BCCL_DB_TST", name: "BCCL_TEST" },
     { code: "BCCL_DB_PROD", name: "BCCL_PROD" },
     { code: "BBPL_DB_PRD", name: "BBPL_PROD" },
+    { code: "BSMPL_DB_TST", name: "BSMPL_TEST" },
+    { code: "BSMPL_DB_PRD", name: "BSMPL_PROD" },
   ];
 
   const servers = [
